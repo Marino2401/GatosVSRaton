@@ -1,18 +1,20 @@
-const LABERINTO = [,
- ,
- ,
- ,
- ,
- ,
- ,
- ,
- ,
- ,
- ,
- ,
- ,
- ,
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+// Matriz lógica del Laberinto corregida (1: Paredes, 0: Caminos libres)
+const LABERINTO = [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1],
+    [1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1],
+    [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1],
+    [1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1],
+    [1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1],
+    [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1],
+    [1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1],
+    [1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1],
+    [1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1],
+    [1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1],
+    [1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ];
 
 const FILAS = LABERINTO.length;
@@ -184,8 +186,8 @@ function actualizarGatos() {
         gato.ruta = ejecutarAStar(gX, gZ, jX, jZ);
 
         if (gato.ruta.length > 1) {
-            let obj = gato.ruta[1];
-            let tX = obj.x * ESCALA + ESCALA/2, tZ = obj.z * ESCALA + ESCALA/2;
+            let puntoObjetivo = gato.ruta[1];
+            let tX = puntoObjetivo.x * ESCALA + ESCALA/2, tZ = puntoObjetivo.z * ESCALA + ESCALA/2;
             let dX = tX - gato.malla.position.x, dZ = tZ - gato.malla.position.z;
             let dist = Math.sqrt(dX*dX + dZ*dZ);
             if (dist > 0.05) {
@@ -229,16 +231,15 @@ function verificarVictoria() {
 }
 
 function finalizarJuego(ganado) {
-    juegoActivo = false; document.exitPointerLock();
-    pantallaFin.classList.remove('oculto');
-    if (ganado) { textoResultado.textContent = "¡GANASTE!"; textoResultado.className = "ganaste"; subtextoResultado.textContent = "¡Burlaste las rutas de la Inteligencia Artificial y tienes el queso!"; }
-
-else { textoResultado.textContent = "TE ATRAPARON"; textoResultado.className = "perdiste"; subtextoResultado.textContent = "Los gatos calcularon tu posición mediante A* y te interceptaron."; }
+ juegoActivo = false; document.exitPointerLock();
+ pantallaFin.classList.remove('oculto');
+ if (ganado) { textoResultado.textContent = "¡GANASTE!"; textoResultado.className = "ganaste"; subtextoResultado.textContent = "¡Burlaste las rutas de la Inteligencia Artificial y tienes el queso!"; }
+ else { textoResultado.textContent = "TE ATRAPARON"; textoResultado.className = "perdiste"; subtextoResultado.textContent = "Los gatos calcularon tu posición mediante A* y te interceptaron."; }
 }
 function animate() {
-  requestAnimationFrame(animate);
-  if (juegoActivo) { moverJugador(); actualizarGatos(); verificarVictoria(); dibujarRadar(); }
-  if (queso.malla) queso.malla.rotation.y += 0.02;
-  renderizador.render(escena, camara);
+ requestAnimationFrame(animate);
+ if (juegoActivo) { moverJugador(); actualizarGatos(); verificarVictoria(); dibujarRadar(); }
+ if (queso.malla) queso.malla.rotation.y += 0.02;
+ renderizador.render(escena, camara);
 }
 init();
