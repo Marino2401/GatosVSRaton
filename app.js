@@ -1,18 +1,19 @@
-// Matriz lógica del Laberinto (1: Paredes, 0: Caminos libres)
-const LABERINTO = [,
- ,
- ,
- ,
- ,
- ,
- ,
- ,
- ,
- ,
- ,
- ,
- ,
- ,
+// Matriz corregida: Las paredes sólidas están marcadas con 1 y los pasillos con 0
+const LABERINTO = [
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,1],
+    [1,0,1,1,1,0,1,0,1,1,1,1,0,1,0,1,1,1,0,1],
+    [1,0,1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,0,1],
+    [1,0,1,0,1,1,1,1,1,0,0,1,1,1,1,1,0,1,0,1],
+    [1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1],
+    [1,1,1,0,1,0,1,1,1,0,0,1,1,1,0,1,0,1,1,1],
+    [1,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,1],
+    [1,0,1,1,1,0,1,1,1,1,1,1,1,1,0,1,1,1,0,1],
+    [1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1],
+    [1,1,1,0,1,1,1,1,0,1,1,0,1,1,1,1,0,1,1,1],
+    [1,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,1],
+    [1,0,1,1,1,1,1,1,0,1,1,0,1,1,1,1,1,1,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
 ];
 
@@ -90,6 +91,8 @@ function ejecutarAStar(iX, iY, fX, fY) {
     let nodos = Array(FILAS).fill().map((_, r) => Array(COLUMNAS).fill().map((_, c) => ({ x: c, y: r, g: Infinity, f: Infinity, padre: null })));
 
     let inicio = nodos[iY][iX], fin = nodos[fY][fX];
+    if (!inicio || !fin) return [];
+    
     inicio.g = 0; inicio.f = Math.abs(iX - fX) + Math.abs(iY - fY);
     abierta.push(inicio);
 
@@ -107,7 +110,7 @@ function ejecutarAStar(iX, iY, fX, fY) {
         let dx = [0, 0, -1, 1], dy = [-1, 1, 0, 0];
         for (let i = 0; i < 4; i++) {
             let nx = actual.x + dx[i], ny = actual.y + dy[i];
-            if (LABERINTO[ny]?.[nx] === 0 && !cerrada[ny][nx]) {
+            if (nx >= 0 && nx < COLUMNAS && ny >= 0 && ny < FILAS && LABERINTO[ny][nx] === 0 && !cerrada[ny][nx]) {
                 let gT = actual.g + 1;
                 let v = nodos[ny][nx];
                 if (gT < v.g) {
