@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A* Laberinto: Ratón vs Gatos 3D</title>
+    <style>
+        body {
+            margin: 0; padding: 0; overflow: hidden;
+            background-color: #111; font-family: 'Segoe UI', sans-serif; user-select: none;
+        }
+        #canvas-container { width: 100vw; height: 100vh; display: block; }
+        #ui-container { position: absolute; top: 20px; left: 20px; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); pointer-events: none; }
+        h1 { margin: 0 0 5px 0; font-size: 24px; color: #ffcc00; }
+        .instrucciones { font-size: 14px; color: #bbb; }
+        #radar {
+            position: absolute; top: 20px; right: 20px; width: 200px; height: 200px;
+            background-color: rgba(0, 0, 0, 0.6); border: 2px solid #ffcc00; border-radius: 4px;
+        }
+        #pantalla-inicio, #pantalla-fin {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: rgba(0, 0, 0, 0.85); display: flex; flex-direction: column;
+            justify-content: center; align-items: center; color: white; text-align: center; z-index: 10;
+        }
+        .oculto { display: none !important; }
+        .btn {
+            background-color: #ffcc00; color: black; border: none; padding: 12px 30px;
+            font-size: 18px; font-weight: bold; border-radius: 25px; cursor: pointer; margin-top: 20px;
+        }
+        .btn:hover { background-color: #ffee55; transform: scale(1.05); }
+        #texto-resultado { font-size: 48px; font-weight: bold; margin-bottom: 10px; }
+        .ganaste { color: #4caf50; }
+        .perdiste { color: #f44336; }
+    </style>
+    <script src="https://cloudflare.com"></script>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <div id="ui-container">
+        <h1>Escape del Laberinto 3D</h1>
+        <div class="instrucciones">Controles: WASD para moverte. Mueve el ratón para mirar a tu alrededor.</div>
+    </div>
+    <canvas id="radar" width="200" height="200"></canvas>
+    <div id="pantalla-inicio">
+        <h2 style="font-size: 40px; color: #ffcc00;">Simulación A*: Ratón y Gatos</h2>
+        <p style="font-size: 18px; max-width: 600px; color: #ccc;">
+            Eres un ratón en un laberinto 3D. Encuentra el <strong>Queso Dorado</strong> antes de que los gatos controlados por el <strong>Algoritmo A*</strong> te cacen en tiempo real calculando la ruta más corta.
+        </p>
+        <button class="btn" id="btn-comenzar">Iniciar Simulación</button>
+    </div>
+    <div id="pantalla-fin" class="oculto">
+        <div id="texto-resultado">¡RESULTADO!</div>
+        <p id="subtexto-resultado" style="font-size: 18px; color: #ccc;"></p>
+        <button class="btn" id="btn-reiniciar">Jugar de Nuevo</button>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
