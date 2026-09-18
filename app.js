@@ -1,3 +1,4 @@
+// Matriz lógica del Laberinto (1: Paredes, 0: Caminos libres)
 const LABERINTO = [,
  ,
  ,
@@ -23,11 +24,11 @@ const ctx = canvas.getContext('2d');
 const ANCHO_CELDA = canvas.width / COLUMNAS;
 const ALTO_CELDA = canvas.height / FILAS;
 
-let jugador = { x: 1, y: 1, velocidad: 0.15 };
+let jugador = { x: 1.5, y: 1.5, velocidad: 0.12 };
 let queso = { x: COLUMNAS - 2, y: FILAS - 2 };
 let gatos = [
-    { x: 9, y: 1, velocidad: 0.04, color: '#ff3333', ruta: [] },
-    { x: 18, y: 11, velocidad: 0.035, color: '#ff6600', ruta: [] }
+    { x: 9.5, y: 1.5, velocidad: 0.035, color: '#ff3333', ruta: [] },
+    { x: 18.5, y: 11.5, velocidad: 0.03, color: '#ff6600', ruta: [] }
 ];
 
 let controles = { w: false, a: false, s: false, d: false, ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
@@ -57,7 +58,7 @@ window.addEventListener('keyup', (e) => {
 });
 
 function detectarColision(nx, ny) {
-    let margen = 0.3;
+    let margen = 0.35;
     let puntosRevision = [
         {x: nx - margen, y: ny - margen},
         {x: nx + margen, y: ny - margen},
@@ -83,14 +84,13 @@ function moverJugador() {
     if (!detectarColision(jugador.x, jugador.y + dy)) jugador.y += dy;
 }
 
-// === ALGORITMO A* INTEGRADO EN TIEMPO REAL ===
-function ejecutarAStar(iX, iZ, fX, fZ) {
+function ejecutarAStar(iX, iY, fX, fY) {
     let abierta = [];
     let cerrada = Array(FILAS).fill().map(() => Array(COLUMNAS).fill(false));
     let nodos = Array(FILAS).fill().map((_, r) => Array(COLUMNAS).fill().map((_, c) => ({ x: c, y: r, g: Infinity, f: Infinity, padre: null })));
 
-    let inicio = nodos[iZ][iX], fin = nodos[fZ][fX];
-    inicio.g = 0; inicio.f = Math.abs(iX - fX) + Math.abs(iZ - fZ);
+    let inicio = nodos[iY][iX], fin = nodos[fY][fX];
+    inicio.g = 0; inicio.f = Math.abs(iX - fX) + Math.abs(iY - fY);
     abierta.push(inicio);
 
     while (abierta.length > 0) {
@@ -112,7 +112,7 @@ function ejecutarAStar(iX, iZ, fX, fZ) {
                 let v = nodos[ny][nx];
                 if (gT < v.g) {
                     v.padre = actual; v.g = gT;
-                    v.f = gT + Math.abs(nx - fX) + Math.abs(ny - fZ);
+                    v.f = gT + Math.abs(nx - fX) + Math.abs(ny - fY);
                     if (!abierta.includes(v)) abierta.push(v);
                 }
             }
@@ -137,14 +137,13 @@ function actualizarGatos() {
                 gato.y += (dY / dist) * gato.velocidad;
             }
         }
-        if (Math.abs(gato.x - jugador.x) < 0.6 && Math.abs(gato.y - jugador.y) < 0.6) finalizarJuego(false);
+        if (Math.abs(gato.x - jugador.x) < 0.5 && Math.abs(gato.y - jugador.y) < 0.5) finalizarJuego(false);
     });
 }
 
 function dibujarJuego() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Dibujar Laberinto
     for (let r = 0; r < FILAS; r++) {
         for (let c = 0; c < COLUMNAS; c++) {
             if (LABERINTO[r][c] === 1) {
@@ -156,10 +155,9 @@ function dibujarJuego() {
         }
     }
 
-    // Dibujar Rutas de los gatos (Líneas guía de Inteligencia Artificial)
     gatos.forEach(gato => {
         if (gato.ruta.length > 0) {
-            ctx.strokeStyle = gato.color + '55'; // Color semi-transparente
+            ctx.strokeStyle = gato.color + '44';
             ctx.lineWidth = 3;
             ctx.beginPath();
             ctx.moveTo(gato.x * ANCHO_CELDA, gato.y * ALTO_CELDA);
@@ -168,13 +166,13 @@ function dibujarJuego() {
         }
     });
 
-    // Dibujar Queso Objetivo
+    // Queso Objetivo
     ctx.fillStyle = '#ffcc00';
     ctx.beginPath();
     ctx.arc((queso.x + 0.5) * ANCHO_CELDA, (queso.y + 0.5) * ALTO_CELDA, ANCHO_CELDA * 0.4, 0, Math.PI * 2);
     ctx.fill();
 
-    // Dibujar Gatos
+    // Gatos
     gatos.forEach(gato => {
         ctx.fillStyle = gato.color;
         ctx.beginPath();
@@ -182,9 +180,8 @@ function dibujarJuego() {
         ctx.fill();
     });
 
-    // Dibujar Ratón (Jugador)
+    // Ratón
     ctx.fillStyle = '#4caf50';
-    ctx.innerHTML = 'M';
     ctx.beginPath();
     ctx.arc(jugador.x * ANCHO_CELDA, jugador.y * ALTO_CELDA, ANCHO_CELDA * 0.35, 0, Math.PI * 2);
     ctx.fill();
