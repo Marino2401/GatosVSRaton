@@ -1,54 +1,47 @@
-// Matriz lógica del Laberinto corregida (1: Paredes, 0: Caminos libres)
-const LABERINTO = [
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1],
-    [1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1],
-    [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1],
-    [1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1],
-    [1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1],
-    [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1],
-    [1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1],
-    [1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1],
-    [1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1],
-    [1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1],
-    [1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1],
-    [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+const LABERINTO = [,
+ ,
+ ,
+ ,
+ ,
+ ,
+ ,
+ ,
+ ,
+ ,
+ ,
+ ,
+ ,
+ ,
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
 ];
 
 const FILAS = LABERINTO.length;
 const COLUMNAS = LABERINTO[0].length;
-const ESCALA = 4;
 
-let escena, camara, renderizador;
-let jugador = { x: 1.5, z: 1.5, anguloY: 0, velocidad: 0.08, radio: 0.4 };
-let queso = { celdaX: COLUMNAS - 2, celdaZ: FILAS - 2, malla: null };
+const canvas = document.getElementById('juegoCanvas');
+const ctx = canvas.getContext('2d');
+const ANCHO_CELDA = canvas.width / COLUMNAS;
+const ALTO_CELDA = canvas.height / FILAS;
+
+let jugador = { x: 1, y: 1, velocidad: 0.15 };
+let queso = { x: COLUMNAS - 2, y: FILAS - 2 };
 let gatos = [
-    { celdaX: 9, celdaZ: 1, malla: null, velocidad: 0.025, color: 0xff3333, ruta: [] },
-    { celdaX: 18, celdaZ: 11, malla: null, velocidad: 0.02, color: 0xff6600, ruta: [] }
+    { x: 9, y: 1, velocidad: 0.04, color: '#ff3333', ruta: [] },
+    { x: 18, y: 11, velocidad: 0.035, color: '#ff6600', ruta: [] }
 ];
 
-let controles = { w: false, a: false, s: false, d: false };
+let controles = { w: false, a: false, s: false, d: false, ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
 let juegoActivo = false;
 
-const pantallaInicio = document.getElementById('pantalla-inicio');
-const pantallaFin = document.getElementById('pantalla-fin');
-const textoResultado = document.getElementById('texto-resultado');
-const subtextoResultado = document.getElementById('subtexto-resultado');
-const radarCanvas = document.getElementById('radar');
-const ctxRadar = radarCanvas.getContext('2d');
-
 document.getElementById('btn-comenzar').addEventListener('click', () => {
-    pantallaInicio.classList.add('oculto');
+    document.getElementById('pantalla-inicio').classList.add('oculto');
     juegoActivo = true;
-    document.body.requestPointerLock();
 });
 
 document.getElementById('btn-reiniciar').addEventListener('click', () => { location.reload(); });
 
 window.addEventListener('keydown', (e) => {
-    if (!juegoActivo) return;
+    if (e.key in controles) { controles[e.key] = true; e.preventDefault(); }
     if (e.key.toLowerCase() === 'w') controles.w = true;
     if (e.key.toLowerCase() === 's') controles.s = true;
     if (e.key.toLowerCase() === 'a') controles.a = true;
@@ -56,96 +49,45 @@ window.addEventListener('keydown', (e) => {
 });
 
 window.addEventListener('keyup', (e) => {
+    if (e.key in controles) controles[e.key] = false;
     if (e.key.toLowerCase() === 'w') controles.w = false;
     if (e.key.toLowerCase() === 's') controles.s = false;
     if (e.key.toLowerCase() === 'a') controles.a = false;
     if (e.key.toLowerCase() === 'd') controles.d = false;
 });
 
-window.addEventListener('mousemove', (e) => {
-    if (document.pointerLockElement === document.body && juegoActivo) {
-        jugador.anguloY -= e.movementX * 0.003;
-    }
-});
-
-function init() {
-    escena = new THREE.Scene();
-    escena.background = new THREE.Color(0x0a0a14);
-    escena.fog = new THREE.FogExp2(0x0a0a14, 0.05);
-
-    camara = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    renderizador = new THREE.WebGLRenderer({ antialias: true });
-    renderizador.setSize(window.innerWidth, window.innerHeight);
-    document.getElementById('canvas-container').appendChild(renderizador.domElement);
-
-    escena.add(new THREE.AmbientLight(0x404050, 1.5));
-    let luz = new THREE.DirectionalLight(0xffffff, 0.8);
-    luz.position.set(5, 10, 7);
-    escena.add(luz);
-
-    let geoSuelo = new THREE.PlaneGeometry(COLUMNAS * ESCALA, FILAS * ESCALA);
-    let matSuelo = new THREE.MeshStandardMaterial({ color: 0x1a1a24 });
-    let suelo = new THREE.Mesh(geoSuelo, matSuelo);
-    suelo.rotation.x = -Math.PI / 2;
-    suelo.position.set((COLUMNAS * ESCALA)/2, 0, (FILAS * ESCALA)/2);
-    escena.add(suelo);
-
-    let geoPared = new THREE.BoxGeometry(ESCALA, 3.5, ESCALA);
-    let matPared = new THREE.MeshStandardMaterial({ color: 0x3a3a4a, roughness: 0.6 });
-    for (let r = 0; r < FILAS; r++) {
-        for (let c = 0; c < COLUMNAS; c++) {
-            if (LABERINTO[r][c] === 1) {
-                let pared = new THREE.Mesh(geoPared, matPared);
-                pared.position.set(c * ESCALA + ESCALA/2, 1.75, r * ESCALA + ESCALA/2);
-                escena.add(pared);
-            }
-        }
-    }
-
-    queso.malla = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.8, 0.5, 6), new THREE.MeshStandardMaterial({ color: 0xffcc00, emissive: 0x332200 }));
-    queso.malla.position.set(queso.celdaX * ESCALA + ESCALA/2, 0.4, queso.celdaZ * ESCALA + ESCALA/2);
-    escena.add(queso.malla);
-
-    gatos.forEach(gato => {
-        let grupo = new THREE.Group();
-        grupo.add(new THREE.Mesh(new THREE.SphereGeometry(0.7, 16, 16), new THREE.MeshStandardMaterial({ color: gato.color })));
-        grupo.position.set(gato.celdaX * ESCALA + ESCALA/2, 0.8, gato.celdaZ * ESCALA + ESCALA/2);
-        escena.add(grupo);
-        gato.malla = grupo;
-    });
-
-    animate();
-}
-
-function moverJugador() {
-    let dx = 0, dz = 0;
-    if (controles.w) { dx += Math.sin(jugador.anguloY) * jugador.velocidad; dz += -Math.cos(jugador.anguloY) * jugador.velocidad; }
-    if (controles.s) { dx -= Math.sin(jugador.anguloY) * jugador.velocidad; dz -= -Math.cos(jugador.anguloY) * jugador.velocidad; }
-    if (controles.a) { dx += Math.sin(jugador.anguloY - Math.PI/2) * jugador.velocidad; dz += -Math.cos(jugador.anguloY - Math.PI/2) * jugador.velocidad; }
-    if (controles.d) { dx += Math.sin(jugador.anguloY + Math.PI/2) * jugador.velocidad; dz += -Math.cos(jugador.anguloY + Math.PI/2) * jugador.velocidad; }
-
-    if (!detectarColision(jugador.x + dx, jugador.z)) jugador.x += dx;
-    if (!detectarColision(jugador.x, jugador.z + dz)) jugador.z += dz;
-
-    camara.position.set(jugador.x * ESCALA, 1.5, jugador.z * ESCALA);
-    camara.rotation.set(0, jugador.anguloY, 0, 'YXZ');
-}
-
-function detectarColision(cx, cz) {
-    let buf = [-jugador.radio, jugador.radio];
-    for (let x of buf) {
-        for (let z of buf) {
-            let sX = Math.floor(cx + x), sZ = Math.floor(cz + z);
-            if (LABERINTO[sZ]?.[sX] === 1) return true;
-        }
+function detectarColision(nx, ny) {
+    let margen = 0.3;
+    let puntosRevision = [
+        {x: nx - margen, y: ny - margen},
+        {x: nx + margen, y: ny - margen},
+        {x: nx - margen, y: ny + margen},
+        {x: nx + margen, y: ny + margen}
+    ];
+    for (let p of puntosRevision) {
+        let celdaX = Math.floor(p.x);
+        let celdaY = Math.floor(p.y);
+        if (LABERINTO[celdaY]?.[celdaX] === 1) return true;
     }
     return false;
 }
 
+function moverJugador() {
+    let dx = 0, dy = 0;
+    if (controles.w || controles.ArrowUp) dy -= jugador.velocidad;
+    if (controles.s || controles.ArrowDown) dy += jugador.velocidad;
+    if (controles.a || controles.ArrowLeft) dx -= jugador.velocidad;
+    if (controles.d || controles.ArrowRight) dx += jugador.velocidad;
+
+    if (!detectarColision(jugador.x + dx, jugador.y)) jugador.x += dx;
+    if (!detectarColision(jugador.x, jugador.y + dy)) jugador.y += dy;
+}
+
+// === ALGORITMO A* INTEGRADO EN TIEMPO REAL ===
 function ejecutarAStar(iX, iZ, fX, fZ) {
     let abierta = [];
     let cerrada = Array(FILAS).fill().map(() => Array(COLUMNAS).fill(false));
-    let nodos = Array(FILAS).fill().map((_, r) => Array(COLUMNAS).fill().map((_, c) => ({ x: c, z: r, g: Infinity, f: Infinity, padre: null })));
+    let nodos = Array(FILAS).fill().map((_, r) => Array(COLUMNAS).fill().map((_, c) => ({ x: c, y: r, g: Infinity, f: Infinity, padre: null })));
 
     let inicio = nodos[iZ][iX], fin = nodos[fZ][fX];
     inicio.g = 0; inicio.f = Math.abs(iX - fX) + Math.abs(iZ - fZ);
@@ -154,23 +96,23 @@ function ejecutarAStar(iX, iZ, fX, fZ) {
     while (abierta.length > 0) {
         abierta.sort((a, b) => a.f - b.f);
         let actual = abierta.shift();
-        cerrada[actual.z][actual.x] = true;
+        cerrada[actual.y][actual.x] = true;
 
-        if (actual.x === fin.x && actual.z === fin.z) {
+        if (actual.x === fin.x && actual.y === fin.y) {
             let ruta = []; let c = actual;
-            while (c !== null) { ruta.push({ x: c.x, z: c.z }); c = c.padre; }
+            while (c !== null) { ruta.push({ x: c.x, y: c.y }); c = c.padre; }
             return ruta.reverse();
         }
 
-        let dx = [0, 0, -1, 1], dz = [-1, 1, 0, 0];
+        let dx = [0, 0, -1, 1], dy = [-1, 1, 0, 0];
         for (let i = 0; i < 4; i++) {
-            let nx = actual.x + dx[i], nz = actual.z + dz[i];
-            if (LABERINTO[nz]?.[nx] === 0 && !cerrada[nz][nx]) {
+            let nx = actual.x + dx[i], ny = actual.y + dy[i];
+            if (LABERINTO[ny]?.[nx] === 0 && !cerrada[ny][nx]) {
                 let gT = actual.g + 1;
-                let v = nodos[nz][nx];
+                let v = nodos[ny][nx];
                 if (gT < v.g) {
                     v.padre = actual; v.g = gT;
-                    v.f = gT + Math.abs(nx - fX) + Math.abs(nz - fZ);
+                    v.f = gT + Math.abs(nx - fX) + Math.abs(ny - fZ);
                     if (!abierta.includes(v)) abierta.push(v);
                 }
             }
@@ -180,66 +122,97 @@ function ejecutarAStar(iX, iZ, fX, fZ) {
 }
 
 function actualizarGatos() {
-    let jX = Math.floor(jugador.x), jZ = Math.floor(jugador.z);
+    let jX = Math.floor(jugador.x), jY = Math.floor(jugador.y);
     gatos.forEach(gato => {
-        let gX = Math.floor(gato.malla.position.x / ESCALA), gZ = Math.floor(gato.malla.position.z / ESCALA);
-        gato.ruta = ejecutarAStar(gX, gZ, jX, jZ);
+        let gX = Math.floor(gato.x), gY = Math.floor(gato.y);
+        gato.ruta = ejecutarAStar(gX, gY, jX, jY);
 
         if (gato.ruta.length > 1) {
-            let puntoObjetivo = gato.ruta[1];
-            let tX = puntoObjetivo.x * ESCALA + ESCALA/2, tZ = puntoObjetivo.z * ESCALA + ESCALA/2;
-            let dX = tX - gato.malla.position.x, dZ = tZ - gato.malla.position.z;
-            let dist = Math.sqrt(dX*dX + dZ*dZ);
+            let siguientePaso = gato.ruta[1];
+            let tX = siguientePaso.x + 0.5, tY = siguientePaso.y + 0.5;
+            let dX = tX - gato.x, dY = tY - gato.y;
+            let dist = Math.sqrt(dX*dX + dY*dY);
             if (dist > 0.05) {
-                gato.malla.position.x += (dX / dist) * gato.velocidad * ESCALA;
-                gato.malla.position.z += (dZ / dist) * gato.velocidad * ESCALA;
+                gato.x += (dX / dist) * gato.velocidad;
+                gato.y += (dY / dist) * gato.velocidad;
             }
         }
-        gato.malla.position.y = 0.8 + Math.sin(Date.now() * 0.003 + gato.color) * 0.1;
-
-        if (Math.sqrt(Math.pow(gato.malla.position.x - jugador.x*ESCALA, 2) + Math.pow(gato.malla.position.z - jugador.z*ESCALA, 2)) < 1.2) {
-            finalizarJuego(false);
-        }
+        if (Math.abs(gato.x - jugador.x) < 0.6 && Math.abs(gato.y - jugador.y) < 0.6) finalizarJuego(false);
     });
 }
 
-function dibujarRadar() {
-    ctxRadar.clearRect(0, 0, radarCanvas.width, radarCanvas.height);
-    let sX = radarCanvas.width / COLUMNAS, sZ = radarCanvas.height / FILAS;
+function dibujarJuego() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    ctxRadar.fillStyle = "rgba(255, 255, 255, 0.15)";
-    for (let r = 0; r < FILAS; r++)
-        for (let c = 0; c < COLUMNAS; c++)
-            if (LABERINTO[r][c] === 1) ctxRadar.fillRect(c * sX, r * sZ, sX - 1, sZ - 1);
+    // Dibujar Laberinto
+    for (let r = 0; r < FILAS; r++) {
+        for (let c = 0; c < COLUMNAS; c++) {
+            if (LABERINTO[r][c] === 1) {
+                ctx.fillStyle = '#2d2d44';
+                ctx.fillRect(c * ANCHO_CELDA, r * ALTO_CELDA, ANCHO_CELDA, ALTO_CELDA);
+                ctx.strokeStyle = '#1e1e2f';
+                ctx.strokeRect(c * ANCHO_CELDA, r * ALTO_CELDA, ANCHO_CELDA, ALTO_CELDA);
+            }
+        }
+    }
 
-    ctxRadar.fillStyle = "#ffcc00";
-    ctxRadar.fillRect(queso.celdaX * sX + 2, queso.celdaZ * sZ + 2, sX - 4, sZ - 4);
-
+    // Dibujar Rutas de los gatos (Líneas guía de Inteligencia Artificial)
     gatos.forEach(gato => {
-        ctxRadar.fillStyle = "red";
-        ctxRadar.fillRect((gato.malla.position.x/ESCALA)*sX, (gato.malla.position.z/ESCALA)*sZ, 5, 5);
+        if (gato.ruta.length > 0) {
+            ctx.strokeStyle = gato.color + '55'; // Color semi-transparente
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(gato.x * ANCHO_CELDA, gato.y * ALTO_CELDA);
+            gato.ruta.forEach(p => ctx.lineTo((p.x + 0.5) * ANCHO_CELDA, (p.y + 0.5) * ALTO_CELDA));
+            ctx.stroke();
+        }
     });
 
-    ctxRadar.fillStyle = "#4caf50";
-    ctxRadar.beginPath(); ctxRadar.arc(jugador.x * sX, jugador.z * sZ, 4, 0, Math.PI*2); ctxRadar.fill();
+    // Dibujar Queso Objetivo
+    ctx.fillStyle = '#ffcc00';
+    ctx.beginPath();
+    ctx.arc((queso.x + 0.5) * ANCHO_CELDA, (queso.y + 0.5) * ALTO_CELDA, ANCHO_CELDA * 0.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Dibujar Gatos
+    gatos.forEach(gato => {
+        ctx.fillStyle = gato.color;
+        ctx.beginPath();
+        ctx.arc(gato.x * ANCHO_CELDA, gato.y * ALTO_CELDA, ANCHO_CELDA * 0.38, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    // Dibujar Ratón (Jugador)
+    ctx.fillStyle = '#4caf50';
+    ctx.innerHTML = 'M';
+    ctx.beginPath();
+    ctx.arc(jugador.x * ANCHO_CELDA, jugador.y * ALTO_CELDA, ANCHO_CELDA * 0.35, 0, Math.PI * 2);
+    ctx.fill();
 }
 
 function verificarVictoria() {
-    if (Math.sqrt(Math.pow(queso.malla.position.x - jugador.x*ESCALA, 2) + Math.pow(queso.malla.position.z - jugador.z*ESCALA, 2)) < 1.5) {
-        finalizarJuego(true);
-    }
+    if (Math.abs(queso.x + 0.5 - jugador.x) < 0.6 && Math.abs(queso.y + 0.5 - jugador.y) < 0.6) finalizarJuego(true);
 }
 
 function finalizarJuego(ganado) {
- juegoActivo = false; document.exitPointerLock();
- pantallaFin.classList.remove('oculto');
- if (ganado) { textoResultado.textContent = "¡GANASTE!"; textoResultado.className = "ganaste"; subtextoResultado.textContent = "¡Burlaste las rutas de la Inteligencia Artificial y tienes el queso!"; }
- else { textoResultado.textContent = "TE ATRAPARON"; textoResultado.className = "perdiste"; subtextoResultado.textContent = "Los gatos calcularon tu posición mediante A* y te interceptaron."; }
+    juegoActivo = false;
+    const pantallaFin = document.getElementById('pantalla-fin');
+    const texto = document.getElementById('texto-resultado');
+    const subtexto = document.getElementById('subtexto-resultado');
+    pantallaFin.classList.remove('oculto');
+    if (ganado) {
+        texto.textContent = "¡GANASTE!"; texto.className = "ganaste";
+        subtexto.textContent = "¡Increíble! Lograste evadir los cálculos de trayectoria en tiempo real del Algoritmo A* y asegurar el queso.";
+    } else {
+        texto.textContent = "TE ATRAPARON"; texto.className = "perdiste";
+        subtexto.textContent = "Los gatos recalcularon de manera óptima la distancia Manhattan del laberinto e interceptaron tu posición.";
+    }
 }
-function animate() {
- requestAnimationFrame(animate);
- if (juegoActivo) { moverJugador(); actualizarGatos(); verificarVictoria(); dibujarRadar(); }
- if (queso.malla) queso.malla.rotation.y += 0.02;
- renderizador.render(escena, camara);
+
+function buclePrincipal() {
+    if (juegoActivo) { moverJugador(); actualizarGatos(); verificarVictoria(); }
+    dibujarJuego();
+    requestAnimationFrame(buclePrincipal);
 }
-init();
+
+buclePrincipal();
